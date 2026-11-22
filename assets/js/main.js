@@ -5,6 +5,7 @@
      2. filtres de la galerie
      3. visionneuse de photos
      4. curseur avant / après
+     5. animations au défilement
    Sans JS : menu déplié, toutes les photos visibles, avant et après côte à côte.
    ========================================================================== */
 
@@ -63,6 +64,13 @@ if (galerie) {
     const bouton = boutons.find((b) => b.dataset.filtre === demande) || boutons[0];
     const [genre, valeur] = bouton.dataset.filtre.split('-');
     choisies = cartes.filter((carte) => !genre || carte.dataset[genre] === valeur);
+    // Les cartes du nouveau filtre arrivent en douceur (CSS : .chantier.entre)
+    choisies.slice(0, PAQUET).forEach((carte, rang) => {
+      carte.classList.remove('entre');
+      carte.style.setProperty('--rang', rang);
+      void carte.offsetWidth; // relance l'animation même si la carte était déjà là
+      carte.classList.add('entre');
+    });
     boutons.forEach((b) => b.setAttribute('aria-pressed', String(b === bouton)));
     limite = PAQUET;
     afficher();
@@ -189,3 +197,64 @@ document.querySelectorAll('.comparer').forEach((bloc) => {
   bloc.classList.add('est-active');
 });
 
+
+/* 5. ANIMATIONS AU DÉFILEMENT ----------------------------------------------- */
+// Seulement si le visiteur accepte les animations et si le navigateur sait
+// prévenir quand un élément arrive à l'écran (IntersectionObserver).
+const entete = document.querySelector('.entete');
+const placerOmbre = () => entete.classList.toggle('a-defile', window.scrollY > 8);
+window.addEventListener('scroll', placerOmbre, { passive: true });
+placerOmbre();
+
+const bouger = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+
+if (bouger && 'IntersectionObserver' in window) {
+  // 1. Cartes et titres qui montent quand on arrive dessus, l'un après l'autre dans un groupe
+  const surveillant = new IntersectionObserver((entrees) => {
+    entrees.forEach((entree) => {
+      if (!entree.isIntersecting) return;
+      entree.target.classList.add('est-visible');
+      surveillant.unobserve(entree.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px' });
+
+  const GROUPES = ['.metiers', '.histoire__scenes', '.nuancier', '.avis', '.comparaisons'];
+  const elements = [
+    ...document.querySelectorAll('main section h2'),
+    ...GROUPES.flatMap((groupe) => [...document.querySelectorAll(`${groupe} > li`)]),
+  ];
+  elements.forEach((element) => {
+    // Déjà à l'écran à l'ouverture : on ne le fait pas clignoter
+    if (element.getBoundingClientRect().top < window.innerHeight) return;
+    const freres = element.parentElement.children;
+    element.style.setProperty('--rang', element.matches('li') ? [...freres].indexOf(element) % 4 : 0);
+    element.classList.add('apparait');
+    surveillant.observe(element);
+  });
+
+  // 2. Avant / après : à la première vue, le curseur fait un aller-retour pour montrer qu'il bouge
+  const montrer = new IntersectionObserver((entrees) => {
+    entrees.forEach((entree) => {
+      if (!entree.isIntersecting) return;
+      montrer.unobserve(entree.target);
+      const bloc = entree.target;
+      const curseur = bloc.querySelector('.comparer__curseur');
+      let arret = false;
+      curseur.addEventListener('pointerdown', () => { arret = true; }, { once: true });
+      curseur.addEventListener('keydown', () => { arret = true; }, { once: true });
+      const debut = performance.now();
+      const DUREE = 1600;
+      const image = (maintenant) => {
+        const t = Math.min(1, (maintenant - debut) / DUREE);
+        if (arret) return;
+        // 50 % -> 30 % -> 70 % -> 50 %, en douceur
+        const position = 50 - 20 * Math.sin(t * Math.PI * 2);
+        bloc.style.setProperty('--position', `${position}%`);
+        curseur.value = String(Math.round(position));
+        if (t < 1) requestAnimationFrame(image);
+      };
+      setTimeout(() => requestAnimationFrame(image), 300);
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll('.comparer.est-active').forEach((bloc) => montrer.observe(bloc));
+}

@@ -163,6 +163,8 @@ main:focus { outline: 0; }
 
 /* 3. EN-TÊTE, MENU ---------------------------------------------------------- */
 .entete { position: relative; z-index: 30; background: rgba(255, 255, 255, 0.94); border-bottom: 1px solid var(--trait); }
+/* Posée par main.js dès qu'on a un peu défilé : l'en-tête se détache de la page */
+.entete.a-defile { box-shadow: 0 6px 24px rgba(15, 46, 36, 0.1); }
 .js .entete { position: -webkit-sticky; position: sticky; top: 0; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .entete__ligne { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; min-height: 70px; }
 .marque { display: inline-flex; align-items: center; min-height: 44px; padding: 0.35rem 0; }
@@ -502,13 +504,56 @@ main:focus { outline: 0; }
   .entete__tel { display: inline-flex; white-space: nowrap; box-shadow: none; }
 }
 
-/* 11. ANIMATIONS : seulement si le visiteur les accepte --------------------- */
+/* 11. ANIMATIONS ----------------------------------------------------------
+   Toutes ici, et seulement si le visiteur n'a pas demandé « réduire les animations ».
+   Courtes (moins d'une seconde), jamais en boucle. Sans JS, rien n'est caché :
+   les apparitions au défilement ne sont préparées que par main.js. */
 @media (prefers-reduced-motion: no-preference) {
-  .bouton { transition: background-color 0.2s, border-color 0.2s, transform 0.2s; }
+  .entete { transition: box-shadow 0.3s; }
+  .bouton { transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
   .bouton:active { transform: translateY(1px); }
+  .lien .icone { transition: transform 0.2s; }
+  .lien:hover .icone { transform: translateX(4px); }
+
   @media (hover: hover) {
-    .metier, .essence, .chantier img { transition: transform 0.3s ease-out, box-shadow 0.3s ease-out; }
-    .metier:hover, .essence:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(15, 46, 36, 0.06), 0 18px 40px rgba(15, 46, 36, 0.14); }
-    .chantier a:hover img { transform: scale(1.04); }
+    .bouton--action:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(29, 122, 82, 0.32); }
+    .metier, .essence, .avis figure, .chantier img { transition: transform 0.3s ease-out, box-shadow 0.3s ease-out; }
+    .metier:hover, .essence:hover, .avis figure:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(15, 46, 36, 0.06), 0 18px 40px rgba(15, 46, 36, 0.14); }
+    .chantier a:hover img { transform: scale(1.05); }
+  }
+
+  /* --- Haut de l'accueil : le texte monte, puis les photos arrivent l'une après l'autre --- */
+  .hero__texte > * { animation: monter 0.7s cubic-bezier(.2, .7, .2, 1) both; }
+  .hero__texte > :nth-child(2) { animation-delay: 0.08s; }
+  .hero__texte > :nth-child(3) { animation-delay: 0.16s; }
+  .hero__texte > :nth-child(4) { animation-delay: 0.24s; }
+  .hero__grande { animation: apparaitre 0.9s ease-out 0.15s both; }
+  .hero__detail { animation: monter 0.7s cubic-bezier(.2, .7, .2, 1) 0.45s both; }
+  .hero__objet { animation: monter 0.7s cubic-bezier(.2, .7, .2, 1) 0.6s both; }
+  /* La feuille en filigrane se pose doucement, une seule fois */
+  .hero::before, .titre-page::before { animation: feuille 1.4s ease-out both; }
+
+  /* --- Apparition au défilement : main.js pose .apparait, puis .est-visible --- */
+  .apparait {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease-out, transform 0.6s cubic-bezier(.2, .7, .2, 1);
+    transition-delay: calc(var(--rang, 0) * 80ms);
+  }
+  .apparait.est-visible { opacity: 1; transform: none; }
+
+  /* --- Galerie : les cartes affichées par un filtre arrivent en douceur --- */
+  .chantier.entre { animation: monter 0.45s ease-out both; animation-delay: calc(var(--rang, 0) * 35ms); }
+
+  @keyframes monter {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes apparaitre {
+    from { opacity: 0; transform: scale(1.04); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes feuille {
+    from { opacity: 0; transform: rotate(-12deg) scale(0.92); }
   }
 }
