@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Une queue d'aronde : l'assemblage de l'ébéniste -->
+  <rect width="64" height="64" rx="12" fill="#2a1b14"/>
+  <path fill="#e0a878" d="M12 14h40v15h-9l4 11H17l4-11h-9z"/>
+  <path fill="#9a431b" d="M12 34h3l-3 9h40l-3-9h3v16H12z"/>
+</svg>

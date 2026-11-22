@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+# À activer au lancement : Sitemap: https://sneaqix.github.io/prestibois-site/sitemap.xml
