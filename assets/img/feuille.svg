@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Feuille au trait, en écho à celle du logo (dessin original, décoratif) -->
+  <g fill="none" stroke="#38a878" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M100 12c26 18 58 38 70 72s-6 76-52 96c-12 5-24 7-36 6C66 150 44 112 46 80s28-52 54-68z"/>
+    <path d="M82 186C92 140 106 92 132 40M98 118c-16-4-28-14-36-26M106 92c16 0 32-6 44-16M114 70c-12-4-20-12-26-22M94 148c18-2 36-10 48-24"/>
+  </g>
+</svg>
